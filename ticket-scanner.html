@@ -49,7 +49,6 @@
 
         button:hover { opacity: 0.9; }
 
-        /* FIXED LOADING SCREEN */
         #loadingScreen {
             display:none;
             position:fixed;
@@ -73,6 +72,10 @@
 
     <button onclick="startScanner()">📷 Start Camera Scanner</button>
     <button onclick="stopScanner()">⏹️ Stop Scanner</button>
+
+    <!-- RESET BUTTON -->
+    <button onclick="window.location.href='reset.html'">🔄 Reset Scanned Tickets</button>
+
     <br><br>
 
     <input type="text" id="manualCode" placeholder="Enter Ticket Code" 
@@ -89,12 +92,14 @@
     <audio id="validSound" src="validbeep.mp3"></audio>
     <audio id="badSound" src="invalidbeep.mp3"></audio>
 
-    <!-- FIXED LOADING SCREEN -->
     <div id="loadingScreen">Scanning…</div>
 
     <script>
         let tickets = {};
         let scanning = false;
+
+        // Load scanned tickets from localStorage
+        let scannedTickets = new Set(JSON.parse(localStorage.getItem('scannedTickets') || "[]"));
 
         async function loadTickets() {
             try {
@@ -128,7 +133,6 @@
                     }
                 });
 
-                console.log("Loaded tickets:", tickets);
             } catch (e) {
                 alert("⚠️ Could not load tickets.csv. Make sure it's in the same folder.");
             }
@@ -152,7 +156,29 @@
         function displayResult(ticket, code) {
             const div = document.getElementById('result');
 
+            // DUPLICATE CHECK
+            if (ticket && scannedTickets.has(code)) {
+                playSound('badSound');
+
+                div.className = 'result invalid';
+                div.innerHTML = `
+                    <h2>⚠️ Already Checked In</h2>
+                    <p><strong>Ticket #:</strong> ${ticket.ticketNumber}</p>
+                    <p><strong>Section:</strong> ${ticket.section} — <strong>Seat:</strong> ${ticket.seat}</p>
+                    <p><strong>Code:</strong> ${ticket.ticketCode}</p>
+                    <p style="color:#721c24; font-weight:bold; margin-top:10px;">
+                        This ticket has already been scanned.
+                    </p>
+                `;
+                div.style.display = 'block';
+                return;
+            }
+
+            // FIRST VALID SCAN
             if (ticket) {
+                scannedTickets.add(code);
+                localStorage.setItem('scannedTickets', JSON.stringify([...scannedTickets]));
+
                 playSound('validSound');
 
                 div.className = 'result valid';
