@@ -46,7 +46,6 @@
                 rows.forEach(row => {
                     if (!row.trim()) return;
 
-                    // Split only first 6 commas, leave URL intact
                     const cols = row.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/);
 
                     const ticketNumber = cols[0]?.trim();
@@ -114,7 +113,17 @@
                 decoder: {
                     readers: ["code_128_reader"]
                 },
-                locate: true
+                locate: true,
+                locator: {
+                    patchSize: "medium",
+                    halfSample: true
+                },
+                debug: {
+                    drawBoundingBox: true,
+                    showFrequency: true,
+                    drawScanline: true,
+                    showPattern: true
+                }
             }, err => {
                 if (err) {
                     alert("Camera error. Allow camera access or try a different device.");
@@ -124,7 +133,13 @@
             });
 
             Quagga.onDetected(result => {
+                if (!result.codeResult || !result.codeResult.code) return;
+
                 const code = result.codeResult.code.trim();
+
+                // Only stop if the code exists in your CSV
+                if (!tickets[code]) return;
+
                 Quagga.stop();
                 displayResult(tickets[code], code);
             });
