@@ -117,12 +117,6 @@
                 locator: {
                     patchSize: "medium",
                     halfSample: true
-                },
-                debug: {
-                    drawBoundingBox: true,
-                    showFrequency: true,
-                    drawScanline: true,
-                    showPattern: true
                 }
             }, err => {
                 if (err) {
@@ -137,7 +131,6 @@
 
                 const code = result.codeResult.code.trim();
 
-                // Only stop if the code exists in your CSV
                 if (!tickets[code]) return;
 
                 Quagga.stop();
