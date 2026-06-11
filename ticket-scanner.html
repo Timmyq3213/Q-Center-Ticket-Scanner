@@ -18,10 +18,12 @@
         #scanner { 
             width: 100%; 
             max-width: 600px; 
+            height: 350px;
             margin: 20px auto; 
             border: none; 
             border-radius: 8px; 
             overflow: hidden;
+            background: black;
         }
 
         .result { 
@@ -50,37 +52,32 @@
 </head>
 <body>
 
-    <!-- Logo -->
     <img src="qcenterlogo.PNG" alt="Q Center Logo" 
          style="width:140px; margin-top:10px; margin-bottom:10px;">
 
     <h1>Q Center Ticket Scanner</h1>
 
-    <!-- Buttons -->
     <button onclick="startScanner()">📷 Start Camera Scanner</button>
     <button onclick="stopScanner()">⏹️ Stop Scanner</button>
     <br><br>
 
-    <!-- Manual Lookup -->
     <input type="text" id="manualCode" placeholder="Enter Ticket Code" 
            style="padding:12px; width:280px; font-size:16px;">
     <button onclick="lookupManual()">🔍 Lookup</button>
 
-    <!-- Scanner Area -->
     <div id="scanner-container" style="display:none; margin:20px auto;">
         <div id="scanner"></div>
     </div>
 
-    <!-- Result Box -->
     <div id="result" class="result" style="display:none;"></div>
 
-    <!-- Sound Effects -->
     <audio id="scanSound" src="scannerbeep.mp3"></audio>
     <audio id="validSound" src="validbeep.mp3"></audio>
     <audio id="badSound" src="invalidbeep.mp3"></audio>
 
     <script>
         let tickets = {};
+        let scanning = false;
 
         async function loadTickets() {
             try {
@@ -160,13 +157,20 @@
         }
 
         function startScanner() {
+            if (scanning) return;
+            scanning = true;
+
             document.getElementById('scanner-container').style.display = 'block';
 
             Quagga.init({
                 inputStream: {
                     type: "LiveStream",
                     target: document.querySelector('#scanner'),
-                    constraints: { facingMode: "environment" }
+                    constraints: {
+                        facingMode: { ideal: "environment" },
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    }
                 },
                 decoder: {
                     readers: ["code_128_reader"]
@@ -179,32 +183,50 @@
             }, err => {
                 if (err) {
                     alert("⚠️ Camera error. Allow camera access or try a different device.");
+                    scanning = false;
                     return;
                 }
-                Quagga.start();
+
+                // iPhone requires a delay before starting
+                setTimeout(() => {
+                    Quagga.start();
+                }, 300);
+            });
+
+            // Patch playsinline for iPhone
+            Quagga.onProcessed(() => {
+                const video = document.querySelector('#scanner video');
+                if (video) {
+                    video.setAttribute('playsinline', true);
+                    video.setAttribute('webkit-playsinline', true);
+                }
             });
 
             Quagga.onDetected(result => {
+                if (!scanning) return;
+
                 if (!result.codeResult || !result.codeResult.code) return;
+
+                scanning = false;
 
                 const code = result.codeResult.code.trim();
 
                 playSound('scanSound');
 
+                Quagga.stop();
+                document.getElementById('scanner-container').style.display = 'none';
+
                 if (!tickets[code]) {
-                    Quagga.stop();
-                    document.getElementById('scanner-container').style.display = 'none';
                     displayResult(null, code);
                     return;
                 }
 
-                Quagga.stop();
-                document.getElementById('scanner-container').style.display = 'none';
                 displayResult(tickets[code], code);
             });
         }
 
         function stopScanner() {
+            scanning = false;
             Quagga.stop();
             document.getElementById('scanner-container').style.display = 'none';
         }
