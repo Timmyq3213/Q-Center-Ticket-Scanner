@@ -50,25 +50,34 @@
 </head>
 <body>
 
-    <!-- Logo at the top -->
+    <!-- Logo -->
     <img src="qcenterlogo.PNG" alt="Q Center Logo" 
          style="width:140px; margin-top:10px; margin-bottom:10px;">
 
     <h1>🎟️ Q Center Ticket Scanner</h1>
 
+    <!-- Buttons -->
     <button onclick="startScanner()">📷 Start Camera Scanner</button>
     <button onclick="stopScanner()">⏹️ Stop Scanner</button>
     <br><br>
 
+    <!-- Manual Lookup -->
     <input type="text" id="manualCode" placeholder="Enter Ticket Code" 
            style="padding:12px; width:280px; font-size:16px;">
     <button onclick="lookupManual()">🔍 Lookup</button>
 
+    <!-- Scanner Area -->
     <div id="scanner-container" style="display:none; margin:20px auto;">
         <div id="scanner"></div>
     </div>
 
+    <!-- Result Box -->
     <div id="result" class="result" style="display:none;"></div>
+
+    <!-- Sound Effects -->
+    <audio id="scanSound" src="scannerbeep.mp3"></audio>
+    <audio id="validSound" src="validbeep.mp3"></audio>
+    <audio id="invalidSound" src="invalidbeep.mp3"></audio>
 
     <script>
         let tickets = {};
@@ -111,10 +120,18 @@
             }
         }
 
+        function playSound(id) {
+            const sound = document.getElementById(id);
+            sound.currentTime = 0;
+            sound.play();
+        }
+
         function displayResult(ticket, code) {
             const div = document.getElementById('result');
 
             if (ticket) {
+                playSound('validSound');
+
                 div.className = 'result valid';
                 div.innerHTML = `
                     <h2>✅ Valid Ticket</h2>
@@ -127,6 +144,8 @@
                         : ''}
                 `;
             } else {
+                playSound('invalidSound');
+
                 div.className = 'result invalid';
                 div.innerHTML = `<h2>❌ Ticket Not Found</h2><p>Code: ${code}</p>`;
             }
@@ -170,12 +189,17 @@
 
                 const code = result.codeResult.code.trim();
 
-                if (!tickets[code]) return;
+                playSound('scanSound');
+
+                if (!tickets[code]) {
+                    Quagga.stop();
+                    document.getElementById('scanner-container').style.display = 'none';
+                    displayResult(null, code);
+                    return;
+                }
 
                 Quagga.stop();
-
                 document.getElementById('scanner-container').style.display = 'none';
-
                 displayResult(tickets[code], code);
             });
         }
