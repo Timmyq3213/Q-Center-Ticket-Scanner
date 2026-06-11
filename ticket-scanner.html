@@ -73,6 +73,7 @@
     <button onclick="startScanner()">📷 Start Camera Scanner</button>
     <button onclick="stopScanner()">⏹️ Stop Scanner</button>
 
+    <!-- RESET BUTTON -->
     <button onclick="window.location.href='reset.html'">🔄 Reset Scanned Tickets</button>
 
     <br><br>
@@ -96,8 +97,8 @@
     <script>
         let tickets = {};
         let scanning = false;
-        let lastScanTime = 0;
 
+        // Load scanned tickets from localStorage
         let scannedTickets = new Set(JSON.parse(localStorage.getItem('scannedTickets') || "[]"));
 
         async function loadTickets() {
@@ -133,7 +134,7 @@
                 });
 
             } catch (e) {
-                alert("⚠️ Could not load tickets.csv.");
+                alert("⚠️ Could not load tickets.csv. Make sure it's in the same folder.");
             }
         }
 
@@ -155,6 +156,7 @@
         function displayResult(ticket, code) {
             const div = document.getElementById('result');
 
+            // DUPLICATE CHECK
             if (ticket && scannedTickets.has(code)) {
                 playSound('badSound');
 
@@ -164,11 +166,15 @@
                     <p><strong>Ticket #:</strong> ${ticket.ticketNumber}</p>
                     <p><strong>Section:</strong> ${ticket.section} — <strong>Seat:</strong> ${ticket.seat}</p>
                     <p><strong>Code:</strong> ${ticket.ticketCode}</p>
+                    <p style="color:#721c24; font-weight:bold; margin-top:10px;">
+                        This ticket has already been scanned.
+                    </p>
                 `;
                 div.style.display = 'block';
                 return;
             }
 
+            // FIRST VALID SCAN
             if (ticket) {
                 scannedTickets.add(code);
                 localStorage.setItem('scannedTickets', JSON.stringify([...scannedTickets]));
@@ -182,6 +188,9 @@
                     <p><strong>Section:</strong> ${ticket.section} — <strong>Seat:</strong> ${ticket.seat}</p>
                     <p><strong>Price:</strong> ${ticket.price}</p>
                     <p><strong>Code:</strong> ${ticket.ticketCode}</p>
+                    ${ticket.barcodeImage ? 
+                        `<img src="${ticket.barcodeImage}" style="max-width:100%; margin-top:15px; border:1px solid #ccc;">` 
+                        : ''}
                 `;
             } else {
                 playSound('badSound');
@@ -195,7 +204,7 @@
 
         function lookupManual() {
             const code = document.getElementById('manualCode').value.trim();
-            if (!code) return alert("⚠️ Enter a ticket code");
+            if (!code) return alert("⚠️ Please enter a ticket code");
             displayResult(tickets[code], code);
         }
 
@@ -212,35 +221,20 @@
                     constraints: {
                         facingMode: { ideal: "environment" },
                         width: { ideal: 1280 },
-                        height: { ideal: 720 },
-                        aspectRatio: { ideal: 1.333 }  // WIDER VIEW, LESS ZOOM
+                        height: { ideal: 720 }
                     }
                 },
                 decoder: {
-                    readers: [
-                        "code_128_reader",
-                        "ean_reader",
-                        "ean_8_reader",
-                        "upc_reader",
-                        "upc_e_reader"
-                    ],
-                    debug: {
-                        drawBoundingBox: true,
-                        showFrequency: true,
-                        drawScanline: true,
-                        showPattern: true
-                    }
+                    readers: ["code_128_reader"]
                 },
                 locate: true,
                 locator: {
-                    patchSize: "large",
-                    halfSample: false
-                },
-                numOfWorkers: 4,
-                frequency: 10
+                    patchSize: "medium",
+                    halfSample: true
+                }
             }, err => {
                 if (err) {
-                    alert("⚠️ Camera error.");
+                    alert("⚠️ Camera error. Allow camera access or try a different device.");
                     scanning = false;
                     return;
                 }
@@ -256,29 +250,19 @@
                     video.setAttribute('playsinline', true);
                     video.setAttribute('webkit-playsinline', true);
                 }
-
-                const track = Quagga.CameraAccess.getActiveTrack();
-                if (track && track.applyConstraints) {
-                    track.applyConstraints({
-                        advanced: [{ focusMode: "continuous" }]
-                    });
-                }
             });
 
             Quagga.onDetected(result => {
                 if (!scanning) return;
-
-                if (Date.now() - lastScanTime < 800) return;
-                lastScanTime = Date.now();
-
                 if (!result.codeResult || !result.codeResult.code) return;
+
+                scanning = false;
 
                 const code = result.codeResult.code.trim();
 
                 playSound('scanSound');
 
                 Quagga.stop();
-                scanning = false;
                 document.getElementById('scanner-container').style.display = 'none';
 
                 showLoading();
