@@ -15,7 +15,6 @@
             margin: 0; 
         }
 
-        /* Scanner box — border removed */
         #scanner { 
             width: 100%; 
             max-width: 600px; 
@@ -51,15 +50,19 @@
 </head>
 <body>
 
-    <h1>Q Center Ticket Scanner</h1>
+    <!-- Logo at the top -->
+    <img src="qcenterlogo.png" alt="Q Center Logo" 
+         style="width:140px; margin-top:10px; margin-bottom:10px;">
 
-    <button onclick="startScanner()">Start Camera Scanner</button>
-    <button onclick="stopScanner()">Stop Scanner</button>
+    <h1>🎟️ Q Center Ticket Scanner</h1>
+
+    <button onclick="startScanner()">📷 Start Camera Scanner</button>
+    <button onclick="stopScanner()">⏹️ Stop Scanner</button>
     <br><br>
 
     <input type="text" id="manualCode" placeholder="Enter Ticket Code" 
            style="padding:12px; width:280px; font-size:16px;">
-    <button onclick="lookupManual()">Lookup</button>
+    <button onclick="lookupManual()">🔍 Lookup</button>
 
     <div id="scanner-container" style="display:none; margin:20px auto;">
         <div id="scanner"></div>
@@ -104,7 +107,7 @@
 
                 console.log("Loaded tickets:", tickets);
             } catch (e) {
-                alert("Could not load tickets.csv. Make sure it's in the same folder.");
+                alert("⚠️ Could not load tickets.csv. Make sure it's in the same folder.");
             }
         }
 
@@ -114,7 +117,7 @@
             if (ticket) {
                 div.className = 'result valid';
                 div.innerHTML = `
-                    <h2>Valid Ticket</h2>
+                    <h2>✅ Valid Ticket</h2>
                     <p><strong>Ticket #:</strong> ${ticket.ticketNumber}</p>
                     <p><strong>Section:</strong> ${ticket.section} — <strong>Seat:</strong> ${ticket.seat}</p>
                     <p><strong>Price:</strong> ${ticket.price}</p>
@@ -125,7 +128,7 @@
                 `;
             } else {
                 div.className = 'result invalid';
-                div.innerHTML = `<h2>Ticket Not Found</h2><p>Code: ${code}</p>`;
+                div.innerHTML = `<h2>❌ Ticket Not Found</h2><p>Code: ${code}</p>`;
             }
 
             div.style.display = 'block';
@@ -133,7 +136,7 @@
 
         function lookupManual() {
             const code = document.getElementById('manualCode').value.trim();
-            if (!code) return alert("Please enter a ticket code");
+            if (!code) return alert("⚠️ Please enter a ticket code");
             displayResult(tickets[code], code);
         }
 
@@ -156,7 +159,7 @@
                 }
             }, err => {
                 if (err) {
-                    alert("Camera error. Allow camera access or try a different device.");
+                    alert("⚠️ Camera error. Allow camera access or try a different device.");
                     return;
                 }
                 Quagga.start();
@@ -171,7 +174,6 @@
 
                 Quagga.stop();
 
-                // Hide scanner immediately to remove white space
                 document.getElementById('scanner-container').style.display = 'none';
 
                 displayResult(tickets[code], code);
