@@ -20,9 +20,9 @@
             width: 100%; 
             max-width: 600px; 
             margin: 20px auto; 
-            border: none;          /* <-- removed black outline */
+            border: none; 
             border-radius: 8px; 
-            overflow: hidden;      /* keeps video clean */
+            overflow: hidden;
         }
 
         .result { 
@@ -170,6 +170,10 @@
                 if (!tickets[code]) return;
 
                 Quagga.stop();
+
+                // Hide scanner immediately to remove white space
+                document.getElementById('scanner-container').style.display = 'none';
+
                 displayResult(tickets[code], code);
             });
         }
