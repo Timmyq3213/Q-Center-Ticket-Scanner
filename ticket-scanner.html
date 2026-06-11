@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ticket Scanner</title>
+    <title>Q Center Ticket Scanner</title>
     <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
 
     <style>
@@ -51,15 +51,15 @@
 </head>
 <body>
 
-    <h1>🎟️ Ticket Scanner</h1>
+    <h1>Q Center Ticket Scanner</h1>
 
-    <button onclick="startScanner()">📷 Start Camera Scanner</button>
-    <button onclick="stopScanner()">⏹️ Stop Scanner</button>
+    <button onclick="startScanner()">Start Camera Scanner</button>
+    <button onclick="stopScanner()">Stop Scanner</button>
     <br><br>
 
     <input type="text" id="manualCode" placeholder="Enter Ticket Code" 
            style="padding:12px; width:280px; font-size:16px;">
-    <button onclick="lookupManual()">🔍 Lookup</button>
+    <button onclick="lookupManual()">Lookup</button>
 
     <div id="scanner-container" style="display:none; margin:20px auto;">
         <div id="scanner"></div>
@@ -114,7 +114,7 @@
             if (ticket) {
                 div.className = 'result valid';
                 div.innerHTML = `
-                    <h2>✅ Valid Ticket</h2>
+                    <h2>Valid Ticket</h2>
                     <p><strong>Ticket #:</strong> ${ticket.ticketNumber}</p>
                     <p><strong>Section:</strong> ${ticket.section} — <strong>Seat:</strong> ${ticket.seat}</p>
                     <p><strong>Price:</strong> ${ticket.price}</p>
@@ -125,7 +125,7 @@
                 `;
             } else {
                 div.className = 'result invalid';
-                div.innerHTML = `<h2>❌ Ticket Not Found</h2><p>Code: ${code}</p>`;
+                div.innerHTML = `<h2>Ticket Not Found</h2><p>Code: ${code}</p>`;
             }
 
             div.style.display = 'block';
