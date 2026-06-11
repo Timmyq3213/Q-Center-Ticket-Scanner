@@ -54,7 +54,7 @@
     <img src="qcenterlogo.PNG" alt="Q Center Logo" 
          style="width:140px; margin-top:10px; margin-bottom:10px;">
 
-    <h1>🎟️ Q Center Ticket Scanner</h1>
+    <h1>Q Center Ticket Scanner</h1>
 
     <!-- Buttons -->
     <button onclick="startScanner()">📷 Start Camera Scanner</button>
@@ -77,7 +77,7 @@
     <!-- Sound Effects -->
     <audio id="scanSound" src="scannerbeep.mp3"></audio>
     <audio id="validSound" src="validbeep.mp3"></audio>
-    <audio id="invalidSound" src="invalidbeep.mp3"></audio>
+    <audio id="badSound" src="invalidbeep.mp3"></audio>
 
     <script>
         let tickets = {};
@@ -144,7 +144,7 @@
                         : ''}
                 `;
             } else {
-                playSound('invalidSound');
+                playSound('badSound');
 
                 div.className = 'result invalid';
                 div.innerHTML = `<h2>❌ Ticket Not Found</h2><p>Code: ${code}</p>`;
