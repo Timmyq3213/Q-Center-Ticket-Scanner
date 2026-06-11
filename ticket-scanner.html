@@ -73,7 +73,6 @@
     <button onclick="startScanner()">📷 Start Camera Scanner</button>
     <button onclick="stopScanner()">⏹️ Stop Scanner</button>
 
-    <!-- RESET BUTTON -->
     <button onclick="window.location.href='reset.html'">🔄 Reset Scanned Tickets</button>
 
     <br><br>
@@ -97,8 +96,8 @@
     <script>
         let tickets = {};
         let scanning = false;
+        let lastScanTime = 0;
 
-        // Load scanned tickets from localStorage
         let scannedTickets = new Set(JSON.parse(localStorage.getItem('scannedTickets') || "[]"));
 
         async function loadTickets() {
@@ -134,7 +133,7 @@
                 });
 
             } catch (e) {
-                alert("⚠️ Could not load tickets.csv. Make sure it's in the same folder.");
+                alert("⚠️ Could not load tickets.csv.");
             }
         }
 
@@ -156,7 +155,6 @@
         function displayResult(ticket, code) {
             const div = document.getElementById('result');
 
-            // DUPLICATE CHECK
             if (ticket && scannedTickets.has(code)) {
                 playSound('badSound');
 
@@ -166,15 +164,11 @@
                     <p><strong>Ticket #:</strong> ${ticket.ticketNumber}</p>
                     <p><strong>Section:</strong> ${ticket.section} — <strong>Seat:</strong> ${ticket.seat}</p>
                     <p><strong>Code:</strong> ${ticket.ticketCode}</p>
-                    <p style="color:#721c24; font-weight:bold; margin-top:10px;">
-                        This ticket has already been scanned.
-                    </p>
                 `;
                 div.style.display = 'block';
                 return;
             }
 
-            // FIRST VALID SCAN
             if (ticket) {
                 scannedTickets.add(code);
                 localStorage.setItem('scannedTickets', JSON.stringify([...scannedTickets]));
@@ -188,9 +182,6 @@
                     <p><strong>Section:</strong> ${ticket.section} — <strong>Seat:</strong> ${ticket.seat}</p>
                     <p><strong>Price:</strong> ${ticket.price}</p>
                     <p><strong>Code:</strong> ${ticket.ticketCode}</p>
-                    ${ticket.barcodeImage ? 
-                        `<img src="${ticket.barcodeImage}" style="max-width:100%; margin-top:15px; border:1px solid #ccc;">` 
-                        : ''}
                 `;
             } else {
                 playSound('badSound');
@@ -204,7 +195,7 @@
 
         function lookupManual() {
             const code = document.getElementById('manualCode').value.trim();
-            if (!code) return alert("⚠️ Please enter a ticket code");
+            if (!code) return alert("⚠️ Enter a ticket code");
             displayResult(tickets[code], code);
         }
 
@@ -220,8 +211,9 @@
                     target: document.querySelector('#scanner'),
                     constraints: {
                         facingMode: { ideal: "environment" },
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 }
+                        width: { ideal: 1024 },
+                        height: { ideal: 768 },
+                        aspectRatio: { ideal: 1.333 }  // WIDER, LESS ZOOM
                     }
                 },
                 decoder: {
@@ -234,7 +226,7 @@
                 }
             }, err => {
                 if (err) {
-                    alert("⚠️ Camera error. Allow camera access or try a different device.");
+                    alert("⚠️ Camera error.");
                     scanning = false;
                     return;
                 }
