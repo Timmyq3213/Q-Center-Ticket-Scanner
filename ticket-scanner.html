@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticket Scanner</title>
+    <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; background: #f4f4f4; }
+        #scanner { width: 100%; max-width: 600px; margin: 20px auto; border: 2px solid #333; }
+        .result { margin: 20px; padding: 15px; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .valid { background: #d4edda; color: #155724; }
+        .invalid { background: #f8d7da; color: #721c24; }
+        button { padding: 12px 24px; font-size: 16px; margin: 10px; }
+    </style>
+</head>
+<body>
+    <h1>🎟️ Ticket Scanner</h1>
+    
+    <button onclick="startScanner()">Start Camera Scanner</button>
+    <button onclick="stopScanner()">Stop Scanner</button>
+    <br>
+    <input type="text" id="manualCode" placeholder="Enter Ticket Code or Barcode" style="padding:10px; width:300px;">
+    <button onclick="lookupManual()">Lookup</button>
+
+    <div id="scanner-container" style="display:none;">
+        <div id="scanner"></div>
+    </div>
+
+    <div id="result" class="result" style="display:none;"></div>
+
+    <script>
+        let tickets = {}; // Will load from CSV
+
+        // Load CSV (place tickets.csv next to this file)
+        async function loadTickets() {
+            try {
+                const response = await fetch('tickets.csv');
+                const text = await response.text();
+                const rows = text.split('\n').slice(1); // Skip header
+                
+                rows.forEach(row => {
+                    if (!row.trim()) return;
+                    const cols = row.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+                    if (cols.length >= 5) {
+                        const code = cols[4] || cols[0]; // Ticket code or number as key
+                        tickets[code.toUpperCase()] = {
+                            ticketNumber: cols[0],
+                            section: cols[1],
+                            seat: cols[2],
+                            price: cols[3],
+                            ticketCode: cols[4],
+                            barcodeImage: cols[5] || ''
+                        };
+                    }
+                });
+                console.log('Loaded', Object.keys(tickets).length, 'tickets');
+            } catch (e) {
+                console.error('Failed to load CSV. Using demo data.', e);
+                // Demo data
+                tickets = {
+                    "TICKET123": { ticketNumber: "001", section: "A", seat: "15", price: "$150", ticketCode: "TICKET123", barcodeImage: "https://example.com/barcode1.png" },
+                    "ABC456": { ticketNumber: "002", section: "B", seat: "22", price: "$120", ticketCode: "ABC456", barcodeImage: "" }
+                };
+            }
+        }
+
+        function displayResult(ticket, code) {
+            const resultDiv = document.getElementById('result');
+            if (ticket) {
+                resultDiv.className = 'result valid';
+                resultDiv.innerHTML = `
+                    <h2>✅ Valid Ticket</h2>
+                    <p><strong>Ticket #:</strong> ${ticket.ticketNumber}</p>
+                    <p><strong>Section:</strong> ${ticket.section} | <strong>Seat:</strong> ${ticket.seat}</p>
+                    <p><strong>Price:</strong> ${ticket.price}</p>
+                    <p><strong>Code:</strong> ${ticket.ticketCode}</p>
+                    ${ticket.barcodeImage ? `<img src="${ticket.barcodeImage}" alt="Barcode" style="max-width:300px; margin-top:10px;">` : ''}
+                `;
+            } else {
+                resultDiv.className = 'result invalid';
+                resultDiv.innerHTML = `<h2>❌ Invalid Ticket</h2><p>Code not found: ${code}</p>`;
+            }
+            resultDiv.style.display = 'block';
+        }
+
+        function lookupManual() {
+            const code = document.getElementById('manualCode').value.trim().toUpperCase();
+            if (!code) return alert('Enter a code');
+            displayResult(tickets[code], code);
+        }
+
+        // QuaggaJS Barcode Scanner
+        function startScanner() {
+            document.getElementById('scanner-container').style.display = 'block';
+            Quagga.init({
+                inputStream: { name: "Live", type: "LiveStream", target: document.querySelector('#scanner') },
+                decoder: { readers: ["code_128_reader", "ean_reader", "qr_reader"] }
+            }, function(err) {
+                if (err) { console.error(err); return alert('Scanner init failed'); }
+                Quagga.start();
+            });
+
+            Quagga.onDetected(function(result) {
+                const code = result.codeResult.code.toUpperCase();
+                console.log("Scanned:", code);
+                Quagga.stop();
+                displayResult(tickets[code], code);
+            });
+        }
+
+        function stopScanner() {
+            Quagga.stop();
+            document.getElementById('scanner-container').style.display = 'none';
+        }
+
+        // Init
+        window.onload = loadTickets;
+    </script>
+</body>
+</html>
