@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ticket Scanner</title>
     <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
+
     <style>
         body { font-family: Arial, sans-serif; text-align: center; padding: 20px; background: #f4f4f4; margin: 0; }
         #scanner { width: 100%; max-width: 600px; margin: 20px auto; border: 3px solid #333; border-radius: 8px; }
@@ -16,11 +17,13 @@
     </style>
 </head>
 <body>
+
     <h1>🎟️ Ticket Scanner</h1>
-    
+
     <button onclick="startScanner()">📷 Start Camera Scanner</button>
     <button onclick="stopScanner()">⏹️ Stop Scanner</button>
     <br><br>
+
     <input type="text" id="manualCode" placeholder="Enter Ticket Code" style="padding:12px; width:280px; font-size:16px;">
     <button onclick="lookupManual()">🔍 Lookup</button>
 
@@ -37,24 +40,36 @@
             try {
                 const response = await fetch('tickets.csv');
                 const text = await response.text();
+
                 const rows = text.split('\n').slice(1);
 
                 rows.forEach(row => {
                     if (!row.trim()) return;
-                    const cols = row.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
-                    const code = (cols[4] || cols[0] || '').toUpperCase().trim();
-                    if (code) {
-                        tickets[code] = {
-                            ticketNumber: cols[0],
-                            section: cols[1],
-                            seat: cols[2],
-                            price: cols[3],
-                            ticketCode: cols[4],
-                            barcodeImage: cols[5] || ''
+
+                    // Split only first 6 commas, leave URL intact
+                    const cols = row.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/);
+
+                    const ticketNumber = cols[0]?.trim();
+                    const section = cols[1]?.trim();
+                    const seat = cols[2]?.trim();
+                    const price = cols[3]?.trim();
+                    const rowId = cols[4]?.trim();
+                    const ticketCode = cols[5]?.trim();
+                    const barcodeImage = cols[6]?.trim();
+
+                    if (ticketCode) {
+                        tickets[ticketCode] = {
+                            ticketNumber,
+                            section,
+                            seat,
+                            price,
+                            ticketCode,
+                            barcodeImage
                         };
                     }
                 });
-                console.log(`✅ Loaded ${Object.keys(tickets).length} tickets`);
+
+                console.log("Loaded tickets:", tickets);
             } catch (e) {
                 alert("Could not load tickets.csv. Make sure it's in the same folder.");
             }
@@ -62,6 +77,7 @@
 
         function displayResult(ticket, code) {
             const div = document.getElementById('result');
+
             if (ticket) {
                 div.className = 'result valid';
                 div.innerHTML = `
@@ -76,27 +92,39 @@
                 div.className = 'result invalid';
                 div.innerHTML = `<h2>❌ Ticket Not Found</h2><p>Code: ${code}</p>`;
             }
+
             div.style.display = 'block';
         }
 
         function lookupManual() {
-            const code = document.getElementById('manualCode').value.trim().toUpperCase();
+            const code = document.getElementById('manualCode').value.trim();
             if (!code) return alert("Please enter a ticket code");
             displayResult(tickets[code], code);
         }
 
         function startScanner() {
             document.getElementById('scanner-container').style.display = 'block';
+
             Quagga.init({
-                inputStream: { type: "LiveStream", target: '#scanner' },
-                decoder: { readers: ["code_128_reader", "ean_reader", "qr_reader", "upc_reader"] }
+                inputStream: {
+                    type: "LiveStream",
+                    target: document.querySelector('#scanner'),
+                    constraints: { facingMode: "environment" }
+                },
+                decoder: {
+                    readers: ["code_128_reader"]
+                },
+                locate: true
             }, err => {
-                if (err) return alert("Camera error. Try on mobile or allow camera permission.");
+                if (err) {
+                    alert("Camera error. Allow camera access or try a different device.");
+                    return;
+                }
                 Quagga.start();
             });
 
             Quagga.onDetected(result => {
-                const code = result.codeResult.code.toUpperCase();
+                const code = result.codeResult.code.trim();
                 Quagga.stop();
                 displayResult(tickets[code], code);
             });
@@ -109,5 +137,6 @@
 
         window.onload = loadTickets;
     </script>
+
 </body>
 </html>
