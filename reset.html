@@ -1,75 +1,54 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Reset Tickets</title>
-
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f4f4f4;
-            text-align: center;
-            padding: 40px;
-        }
-
-        .box {
-            background: white;
-            padding: 30px;
-            max-width: 400px;
-            margin: auto;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-
-        button {
-            padding: 14px 26px;
-            font-size: 18px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            margin: 10px;
-        }
-
-        .danger {
-            background: #d9534f;
-            color: white;
-        }
-
-        .back {
-            background: #5bc0de;
-            color: white;
-        }
-    </style>
+<meta charset="UTF-8">
+<title>Reset Tickets</title>
+<style>
+body { font-family:Arial; background:#f4f4f4; text-align:center; padding:40px; }
+.box { background:white; padding:30px; max-width:400px; margin:auto; border-radius:12px; }
+button { padding:14px 26px; font-size:18px; border:none; border-radius:6px; margin:10px; }
+.danger { background:#d9534f; color:white; }
+.back { background:#5bc0de; color:white; }
+</style>
 </head>
 <body>
 
-    <div class="box">
-        <h2>⚠️ Reset All Ticket Data?</h2>
-        <p style="font-size:18px;">
-            This will clear:<br><br>
-            • All scanned tickets<br>
-            • All purchased/sold tickets<br><br>
-            You cannot undo this action.
-        </p>
+<div class="box">
+    <h2>⚠️ Reset All Ticket Data?</h2>
+    <p>This clears scanned tickets AND purchased tickets.</p>
+    <button class="danger" onclick="resetAll()">Reset Now</button>
+    <button class="back" onclick="window.location.href='ticket-scanner.html'">Go Back</button>
+</div>
 
-        <button class="danger" onclick="resetScans()">Reset Now</button>
-        <br>
-        <button class="back" onclick="window.location.href='https://timmyq3213.github.io/Q-Center-Ticket-Scanner/ticket-scanner.html'">Go Back</button>
-    </div>
+<script>
+const repo = "timmyq3213/Q-Center-Ticket-Scanner";
+const filePath = "sold.json";
+const token = " "; // ← PASTE TOKEN HERE
 
-    <script>
-        function resetScans() {
-            // Clear scanned tickets
-            localStorage.removeItem('scannedTickets');
+async function resetAll() {
+    localStorage.removeItem("scannedTickets");
 
-            // Clear purchased/sold tickets
-            localStorage.removeItem('soldTickets');
+    const getFile = await fetch(`https://api.github.com/repos/${repo}/contents/${filePath}`);
+    const fileData = await getFile.json();
 
-            // Redirect back to scanner
-            window.location.href = 'https://timmyq3213.github.io/Q-Center-Ticket-Scanner/ticket-scanner.html';
-        }
-    </script>
+    const emptyContent = btoa(JSON.stringify([], null, 2));
+
+    await fetch(`https://api.github.com/repos/${repo}/contents/${filePath}`, {
+        method: "PUT",
+        headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            message: "Reset sold tickets",
+            content: emptyContent,
+            sha: fileData.sha
+        })
+    });
+
+    window.location.href = "ticket-scanner.html";
+}
+</script>
 
 </body>
 </html>
