@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Ticket</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .ticket-container {
+            background: white;
+            max-width: 420px;
+            margin: auto;
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+
+        .ticket-title {
+            font-size: 26px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .ticket-info {
+            font-size: 18px;
+            margin: 8px 0;
+        }
+
+        .barcode-box {
+            margin-top: 25px;
+            padding: 20px;
+            background: #ffffff;
+            border-radius: 12px;
+            border: 1px solid #ddd;
+        }
+
+        .barcode-img {
+            width: 75%;
+            max-width: 260px;
+            display: block;
+            margin: auto;
+        }
+
+        .footer-note {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ticket-container">
+        <div class="ticket-title">🎟️ Event Ticket</div>
+
+        <div id="section" class="ticket-info"></div>
+        <div id="seat" class="ticket-info"></div>
+        <div id="price" class="ticket-info"></div>
+
+        <div class="barcode-box">
+            <img id="barcode" class="barcode-img">
+        </div>
+
+        <div class="footer-note">Please present this ticket at entry.</div>
+    </div>
+
+    <script>
+        // Read URL parameters
+        const params = new URLSearchParams(window.location.search);
+
+        const section = params.get("section") || "N/A";
+        const seat = params.get("seat") || "N/A";
+        const price = params.get("price") || "N/A";
+        const code = params.get("code") || "";
+
+        // Fill in ticket info
+        document.getElementById("section").innerHTML = `<strong>Section:</strong> ${section}`;
+        document.getElementById("seat").innerHTML = `<strong>Seat:</strong> ${seat}`;
+        document.getElementById("price").innerHTML = `<strong>Price:</strong> $${price}`;
+
+        // Generate barcode from code
+        if (code) {
+            document.getElementById("barcode").src =
+                `https://barcode.tec-it.com/barcode.ashx?data=${code}&code=Code128&dpi=300&width=300&height=120`;
+        }
+    </script>
+
+</body>
+</html>
