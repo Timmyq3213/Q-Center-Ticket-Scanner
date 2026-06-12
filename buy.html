@@ -10,17 +10,31 @@
         font-family: Arial, sans-serif;
         background: #f4f4f4;
         padding: 20px;
-    }
-    h1 {
         text-align: center;
     }
+
+    .logo {
+        width: 180px;
+        margin: 10px auto 10px auto;
+        display: block;
+    }
+
+    .subtitle {
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 20px;
+        color: #333;
+    }
+
     .ticket {
         background: white;
         padding: 15px;
         margin: 10px 0;
         border-radius: 10px;
         box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        text-align: left;
     }
+
     button {
         padding: 10px 15px;
         border: none;
@@ -32,6 +46,13 @@
 </style>
 </head>
 <body>
+
+<!-- ⭐ Your Logo -->
+<img src="qcenterlogo.PNG" alt="Q Center Logo" class="logo">
+
+<!-- ⭐ SUBTITLE — CHANGE THIS TEXT ANYTIME -->
+<div class="subtitle">Soft Opening</div>
+<!-- ⭐ CHANGE ABOVE LINE ONLY to rename event -->
 
 <h1>Buy Tickets</h1>
 
@@ -82,7 +103,6 @@ function buyTicket(code, section, seat, price) {
         return;
     }
 
-    // No sold tracking — always allow purchase
     window.location.href =
         `ticket.html?section=${section}&seat=${seat}&price=${price}&code=${code}`;
 }
