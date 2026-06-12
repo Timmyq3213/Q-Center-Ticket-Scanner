@@ -1,24 +1,44 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Buy Tickets</title>
+
 <style>
-body { font-family: Arial; background:#f4f4f4; padding:20px; }
-.ticket { background:white; padding:15px; margin:10px 0; border-radius:10px; }
-.sold { background:#ffdddd; border-left:6px solid red; }
-.available { background:#ddffdd; border-left:6px solid green; }
-button { padding:10px 15px; border:none; background:#007bff; color:white; border-radius:6px; }
-button:disabled { background:gray; }
+    body {
+        font-family: Arial, sans-serif;
+        background: #f4f4f4;
+        padding: 20px;
+    }
+    h1 {
+        text-align: center;
+    }
+    .ticket {
+        background: white;
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    button {
+        padding: 10px 15px;
+        border: none;
+        background: #007bff;
+        color: white;
+        border-radius: 6px;
+        cursor: pointer;
+    }
 </style>
 </head>
 <body>
 
 <h1>Buy Tickets</h1>
+
 <div id="ticketList"></div>
 
 <script>
-// Your ticket list
+// Your ticket data
 const tickets = [
     {num:1, section:"CLUB 201", seat:"1", price:"75.00", code:"prgEbbDSSS"},
     {num:2, section:"CLUB 201", seat:"2", price:"70.00", code:"n9rhqk7UWz"},
@@ -33,56 +53,20 @@ const tickets = [
     {num:11, section:"101", seat:"6", price:"50.00", code:"emlgaYkO08"}
 ];
 
-// GitHub repo info
-const repo = "timmyq3213/Q-Center-Ticket-Scanner";
-const filePath = "sold.json";
-const token = "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"; // ← PASTE TOKEN HERE
-
-// Load sold.json from GitHub
-async function loadSold() {
-    const res = await fetch(`https://raw.githubusercontent.com/${repo}/main/${filePath}?t=${Date.now()}`);
-    return await res.json();
-}
-
-// Save sold.json to GitHub
-async function saveSold(soldList) {
-    const getFile = await fetch(`https://api.github.com/repos/${repo}/contents/${filePath}`);
-    const fileData = await getFile.json();
-
-    const updatedContent = btoa(JSON.stringify(soldList, null, 2));
-
-    await fetch(`https://api.github.com/repos/${repo}/contents/${filePath}`, {
-        method: "PUT",
-        headers: {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            message: "Update sold tickets",
-            content: updatedContent,
-            sha: fileData.sha
-        })
-    });
-}
-
-async function renderTickets() {
-    const sold = await loadSold();
+function renderTickets() {
     const list = document.getElementById("ticketList");
     list.innerHTML = "";
 
     tickets.forEach(t => {
-        const isSold = sold.includes(t.code);
-
         const div = document.createElement("div");
-        div.className = "ticket " + (isSold ? "sold" : "available");
+        div.className = "ticket";
 
         div.innerHTML = `
             <strong>Section:</strong> ${t.section}<br>
             <strong>Seat:</strong> ${t.seat}<br>
-            <strong>Price:</strong> $${t.price}<br>
-            <strong>Status:</strong> ${isSold ? "SOLD" : "AVAILABLE"}<br><br>
-            <button ${isSold ? "disabled" : ""} onclick="buyTicket('${t.code}', '${t.section}', '${t.seat}', '${t.price}')">
-                ${isSold ? "Unavailable" : "Buy Ticket"}
+            <strong>Price:</strong> $${t.price}<br><br>
+            <button onclick="buyTicket('${t.code}', '${t.section}', '${t.seat}', '${t.price}')">
+                Buy Ticket
             </button>
         `;
 
@@ -90,15 +74,15 @@ async function renderTickets() {
     });
 }
 
-async function buyTicket(code, section, seat, price) {
+function buyTicket(code, section, seat, price) {
     const master = prompt("Enter master code to purchase:");
-    if (master !== "QCenterSoft2026") return alert("Incorrect master code.");
 
-    const sold = await loadSold();
-    if (!sold.includes(code)) sold.push(code);
+    if (master !== "QCenterSoft2026") {
+        alert("Incorrect master code.");
+        return;
+    }
 
-    await saveSold(sold);
-
+    // No sold tracking — always allow purchase
     window.location.href =
         `ticket.html?section=${section}&seat=${seat}&price=${price}&code=${code}`;
 }
