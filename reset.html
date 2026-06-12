@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Reset Scanned Tickets</title>
+    <title>Reset Tickets</title>
 
     <style>
         body {
@@ -45,9 +45,11 @@
 <body>
 
     <div class="box">
-        <h2>⚠️ Reset Scanned Tickets?</h2>
+        <h2>⚠️ Reset All Ticket Data?</h2>
         <p style="font-size:18px;">
-            This will clear all previously scanned tickets.<br>
+            This will clear:<br><br>
+            • All scanned tickets<br>
+            • All purchased/sold tickets<br><br>
             You cannot undo this action.
         </p>
 
@@ -58,7 +60,13 @@
 
     <script>
         function resetScans() {
+            // Clear scanned tickets
             localStorage.removeItem('scannedTickets');
+
+            // Clear purchased/sold tickets
+            localStorage.removeItem('soldTickets');
+
+            // Redirect back to scanner
             window.location.href = 'https://timmyq3213.github.io/Q-Center-Ticket-Scanner/ticket-scanner.html';
         }
     </script>
